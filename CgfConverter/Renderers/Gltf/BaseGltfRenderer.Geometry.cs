@@ -877,6 +877,19 @@ public partial class BaseGltfRenderer
         if (verts is null && vertsUvs is null)
             return Log.D<bool>("Mesh[{0}]: both VerticesData and VertsUVsData are empty.", gltfNode.Name);
 
+        // A non-null vertex datastream can still carry zero elements (degenerate
+        // placeholder mesh node, e.g. an articulated prop's empty render slot).
+        // The accessor min/max computation downstream calls LINQ Min()/Max() over
+        // the vertex range and throws "Sequence contains no elements" on an empty
+        // range, which aborts the whole file. Skip such mesh nodes instead.
+        if ((verts is null || verts.Data.Length == 0) &&
+            (vertsUvs is null || vertsUvs.Data.Length == 0))
+            return Log.D<bool>("Mesh[{0}]: vertex data is empty.", gltfNode.Name);
+        if (indices.Data.Length == 0)
+            return Log.D<bool>("Mesh[{0}]: index data is empty.", gltfNode.Name);
+        if (subsets.Count == 0 || subsets.All(x => x.NumVertices == 0 || x.NumIndices == 0))
+            return Log.D<bool>("Mesh[{0}]: all geometry subsets are empty.", gltfNode.Name);
+
         if (subsets.All(x => FindMaterial(x.MatID)?.IsSkippedFromArgs ?? false))
             return false;
 
@@ -1109,6 +1122,10 @@ public partial class BaseGltfRenderer
                 .Select(x => Tuple.Create(x, FindMaterial(x.MatID)))
                 .Where(x => !(x.Item2?.IsSkippedFromArgs ?? false))
                 .Where(x => x.Item1.NumVertices != 0)
+                // A subset can carry vertices but zero indices (degenerate, no
+                // triangles). Its index accessor range would be empty and the
+                // Min()/Max() bound computation throws; drop such subsets.
+                .Where(x => x.Item1.NumIndices != 0)
                 .Select(x => {
                     var (v, mat) = x;
 
