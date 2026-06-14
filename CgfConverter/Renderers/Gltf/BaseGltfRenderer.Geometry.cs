@@ -1159,10 +1159,9 @@ public partial class BaseGltfRenderer
                 return null;
             if (matId >= submats.Length || matId < 0)
                 return null;
-            string? subMatName = submats[matId].Name;
-            return subMatName is null || cryData.MaterialFiles is null
+            return cryData.MaterialFiles is null
                 ? null
-                : _materialMap.GetValueOrDefault((MaterialFile: cryData.MaterialFiles.FirstOrDefault(), subMatName));
+                : _materialMap.GetValueOrDefault((MaterialFile: cryData.MaterialFiles.FirstOrDefault(), matId));
         }
     }
 }

@@ -136,13 +136,13 @@ public partial class BaseGltfRenderer
         if (material.SubMaterials is null)
             return;
 
-        foreach (Material submat in material.SubMaterials)
+        for (int i = 0; i < material.SubMaterials.Length; i++)
         {
-            (string MaterialFile, string SubMaterialName) key = (materialFile, submat.Name!);
+            (string MaterialFile, int SubMaterialIndex) key = (materialFile, i);
             if (_materialMap.ContainsKey(key))
                 continue;
             _materialMap[key] = new WrittenMaterial(
-                submat,
+                material.SubMaterials[i],
                 this,
                 _materialTextureManager,
                 _args,

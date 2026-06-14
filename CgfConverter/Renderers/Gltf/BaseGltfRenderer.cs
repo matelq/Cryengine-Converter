@@ -12,7 +12,10 @@ public partial class BaseGltfRenderer
     protected readonly Args _args;
     private readonly bool _writeText;
     private readonly bool _writeBinary;
-    private readonly Dictionary<(string MaterialFile, string SubMaterialName), WrittenMaterial> _materialMap = new();
+    // Keyed by submaterial index (MatID), not name: a single .mtl can contain
+    // multiple submaterials with identical names that differ in textures, and
+    // name keying collapses them onto the first (often textureless) one.
+    private readonly Dictionary<(string MaterialFile, int SubMaterialIndex), WrittenMaterial> _materialMap = new();
 
     private readonly List<byte[]> _bytesList = [];
     private readonly Dictionary<string, byte[]> _filesList = [];
